@@ -73,7 +73,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
          */
         public void onItemSelected(Uri dateUri);
     }
-
+    private ListView mListView;
+    private int mPosition = ListView.INVALID_POSITION;
+    private static final String SELECTED_KEY = "selected_position";
     public ForecastFragment() {
     }
     @Override
@@ -136,7 +138,16 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if(mPosition!=ListView.INVALID_POSITION)
+        {
+            outState.putInt(SELECTED_KEY,mPosition);
+        }
 
+        super.onSaveInstanceState(outState);
+
+    }
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -144,9 +155,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
         View rootView = inflater.inflate(R.layout.fragement_main, container, false);
         // Get a reference to the ListView, and attach this adapter to it.
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
-        listView.setAdapter(mForecastAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        mListView.setAdapter(mForecastAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView adapterView, View view, int position, long l) {
@@ -161,9 +172,14 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                             ));
 
                 }
+                mPosition=position;
             }
         });
-
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            // The listview probably hasn't even been populated yet.  Actually perform the
+                      // swapout in onLoadFinished.
+                  mPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
         // Sort order:  Ascending, by date.
         return rootView;
     }
@@ -185,6 +201,11 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         mForecastAdapter.swapCursor(cursor);
+
+        if(mPosition!=ListView.INVALID_POSITION)
+        {
+            mListView.smoothScrollToPosition(mPosition);
+        }
     }
     @Override
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
