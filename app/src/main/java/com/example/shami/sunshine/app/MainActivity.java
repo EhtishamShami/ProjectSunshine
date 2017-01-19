@@ -8,11 +8,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 
+import com.example.shami.sunshine.app.sync.SunshineSyncAdapter;
+
+
 public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
 
     private static final String DETAILFRAGMENT_TAG = "DFTAG";
     private String mLocation;
     private boolean mTwoPane;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +32,16 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
             }
         } else {
             mTwoPane = false;
+            getSupportActionBar().setElevation(0f);
         }
+
+        ForecastFragment forecastFragment =  ((ForecastFragment)getSupportFragmentManager()
+                               .findFragmentById(R.id.fragment_forecast));
+                forecastFragment.setUseTodayLayout(!mTwoPane);
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
+
+
     @Override
         protected void onResume() {
         super.onResume();
@@ -76,17 +88,6 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
         return true;
     }
 
-    private void openPreferredlocationInMap()
-    {
-        String location = Utility.getPreferredLocation(this);
-        Uri geolocation=Uri.parse("geo:0,0?").buildUpon()
-                .appendQueryParameter("q",location).build();
-        Intent intent=new Intent(Intent.ACTION_VIEW);
-        intent.setData(geolocation);
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            startActivity(intent);
-        }
-    }
 
 
 

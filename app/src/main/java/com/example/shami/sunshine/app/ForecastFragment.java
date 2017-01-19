@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,6 +20,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.shami.sunshine.app.data.WeatherContract;
+import com.example.shami.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
  * Created by Shami on 1/5/2017.
@@ -31,6 +33,8 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     Toast toast;
     int duration = Toast.LENGTH_SHORT;
     private static final int FORECAST_LOADER = 0;
+
+    private boolean mUseTodayLayout;
 
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -71,11 +75,13 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         /**
          * DetailFragmentCallback for when an item has been selected.
          */
-        public void onItemSelected(Uri dateUri);
+    public void onItemSelected(Uri dateUri);
     }
     private ListView mListView;
     private int mPosition = ListView.INVALID_POSITION;
     private static final String SELECTED_KEY = "selected_position";
+
+
     public ForecastFragment() {
     }
     @Override
@@ -105,16 +111,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     {
 
         int id=item.getItemId();
-        if(id==R.id.action_refresh)
-        {
-            updateWeather();
-            return true;
-        }
-        else if(id==R.id.title_activity_settings)
+        if(id==R.id.title_activity_settings)
         {
             startActivity(new Intent(getActivity(),SettingsActivity.class));
         }else if(id==R.id.title_activity_showlocation)
         {
+            openPreferredLocationInMap();
 
         }
 
@@ -132,9 +134,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     void updateWeather()
     {
-        FetchWeatherTask weatherTask = new FetchWeatherTask(getActivity());
-        String location = Utility.getPreferredLocation(getActivity());
-        weatherTask.execute(location);
+        SunshineSyncAdapter.syncImmediately(getActivity());
     }
 
 
@@ -180,6 +180,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                       // swapout in onLoadFinished.
                   mPosition = savedInstanceState.getInt(SELECTED_KEY);
         }
+
+        mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
+
         // Sort order:  Ascending, by date.
         return rootView;
     }
@@ -208,7 +211,42 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
         }
     }
     @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+    public void onLoaderReset(Loader<Cursor> loader) {
         mForecastAdapter.swapCursor(null);
     }
+
+
+        public void setUseTodayLayout(boolean useTodayLayout) {
+                mUseTodayLayout = useTodayLayout;
+                if (mForecastAdapter != null) {
+                        mForecastAdapter.setUseTodayLayout(mUseTodayLayout);
+                    }
+            }
+
+    private void openPreferredLocationInMap() {
+
+        if ( null != mForecastAdapter ) {
+            Cursor c = mForecastAdapter.getCursor();
+            if ( null != c ) {
+                c.moveToPosition(0);
+                String posLat = c.getString(COL_COORD_LAT);
+                String posLong = c.getString(COL_COORD_LONG);
+                Uri geoLocation = Uri.parse("geo:" + posLat + "," + posLong);
+
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(geoLocation);
+
+                if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                    startActivity(intent);
+                } else {
+                    Log.d("SEE", "Couldn't call " + geoLocation.toString() + ", no receiving apps installed!");
+                }
+            }
+
+        }
+    }
+
+
+
+
 }
