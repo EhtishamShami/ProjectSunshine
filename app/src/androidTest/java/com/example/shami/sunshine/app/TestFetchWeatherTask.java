@@ -15,11 +15,7 @@
  */
 package com.example.shami.sunshine.app;
 
-import android.annotation.TargetApi;
-import android.database.Cursor;
 import android.test.AndroidTestCase;
-
-import com.example.shami.sunshine.app.data.WeatherContract;
 
 public class TestFetchWeatherTask extends AndroidTestCase{
     static final String ADD_LOCATION_SETTING = "Sunnydale, CA";
@@ -32,6 +28,7 @@ public class TestFetchWeatherTask extends AndroidTestCase{
         This test will only run on API level 11 and higher because of a requirement in the
         content provider.
      */
+    /*
     @TargetApi(11)
     public void testAddLocation() {
         // start from a clean state
@@ -100,5 +97,5 @@ public class TestFetchWeatherTask extends AndroidTestCase{
         getContext().getContentResolver().
                 acquireContentProviderClient(WeatherContract.LocationEntry.CONTENT_URI).
                 getLocalContentProvider().shutdown();
-    }
+    }*/
 }

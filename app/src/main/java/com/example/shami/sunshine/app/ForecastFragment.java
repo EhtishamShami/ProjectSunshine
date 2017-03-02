@@ -1,9 +1,11 @@
 package com.example.shami.sunshine.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -17,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.shami.sunshine.app.data.WeatherContract;
@@ -26,7 +29,7 @@ import com.example.shami.sunshine.app.sync.SunshineSyncAdapter;
  * Created by Shami on 1/5/2017.
  */
 /////My Forecast Fragement Class
-public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class ForecastFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> ,SharedPreferences.OnSharedPreferenceChangeListener{
 
 
     private ForecastAdapter mForecastAdapter;
@@ -36,13 +39,9 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
 
     private boolean mUseTodayLayout;
 
+    TextView emptyView;
+
     private static final String[] FORECAST_COLUMNS = {
-            // In this case the id needs to be fully qualified with a table name, since
-            // the content provider joins the location & weather tables in the background
-            // (both have an _id column)
-            // On the one hand, that's annoying.  On the other, you can search the weather table
-            // using the location set by the user, which is only in the Location table.
-            // So the convenience is worth it.
             WeatherContract.WeatherEntry.TABLE_NAME + "." + WeatherContract.WeatherEntry._ID,
             WeatherContract.WeatherEntry.COLUMN_DATE,
             WeatherContract.WeatherEntry.COLUMN_SHORT_DESC,
@@ -65,6 +64,31 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     static final int COL_WEATHER_CONDITION_ID = 6;
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
+
+    @Override
+    public void onResume() {
+        SharedPreferences sp= PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        SharedPreferences sp= PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
+
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+      if(key.equals(getString(R.string.pref_location_status_key)))
+      {
+          UpdateEmtpyView();
+      }
+    }
+
+
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -152,9 +176,12 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
+
         mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
         View rootView = inflater.inflate(R.layout.fragement_main, container, false);
         // Get a reference to the ListView, and attach this adapter to it.
+
+        emptyView=(TextView)rootView.findViewById(R.id.listview_forecast_empty);
         mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
         mListView.setAdapter(mForecastAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -175,6 +202,7 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 mPosition=position;
             }
         });
+        mListView.setEmptyView(emptyView);
         if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
             // The listview probably hasn't even been populated yet.  Actually perform the
                       // swapout in onLoadFinished.
@@ -201,15 +229,50 @@ public class ForecastFragment extends Fragment implements LoaderManager.LoaderCa
                 sortOrder);
     }
 
+    private void UpdateEmtpyView()
+    {
+        if(mForecastAdapter.getCount()==0)
+        {
+            TextView tv=(TextView)getView().findViewById(R.id.listview_forecast_empty);
+            if(null!=tv)
+            {
+                int message=R.string.empty_string;
+                @SunshineSyncAdapter.LocationStatus int location=Utility.getLocationStatus(getActivity());
+                switch (location)
+                {
+                    case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                        message=R.string.empty_forecast_list_server_down;
+                        break;
+                    case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                        message=R.string.empty_forecast_list_server_error;
+                        break;
+                    case SunshineSyncAdapter.LOCATION_STATUS_INVALID:
+                        message=R.string.empty_forecasr_list_invalid_location;
+                        break;
+                    default:
+                        if(Utility.isNetworkAvalible(getActivity()))
+                        {
+                            message=R.string.No_Network_string;
+                        }
+                }
+                tv.setText(message);
+            }
+        }
+    }
+
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         mForecastAdapter.swapCursor(cursor);
-
         if(mPosition!=ListView.INVALID_POSITION)
         {
             mListView.smoothScrollToPosition(mPosition);
         }
+        UpdateEmtpyView();
     }
+
+
+
+
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mForecastAdapter.swapCursor(null);
