@@ -8,7 +8,9 @@
     </style>
 
 
+    <style name="AppTheme.Main" parent="AppTheme"></style>
 
+    <style name="AppTheme.Detail" parent="AppTheme"></style>
 
     <!-- Main activity theme. -->
     <style name="ForecastTheme" parent="AppTheme">

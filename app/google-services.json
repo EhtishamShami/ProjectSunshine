@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "475292154308",
+    "firebase_url": "https://sunshinealert-26936.firebaseio.com",
+    "project_id": "sunshinealert-26936",
+    "storage_bucket": "sunshinealert-26936.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:475292154308:android:1cb192e619b53a4c",
+        "android_client_info": {
+          "package_name": "com.example.shami.sunshine.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "475292154308-rudfkfga8biln9q3118kb6o20f5c7ker.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shami.sunshine.app",
+            "certificate_hash": "5101d707e3aa71433e3f8a92a39d2d785ce8cd65"
+          }
+        },
+        {
+          "client_id": "475292154308-da2tehtg8v0kq6fn4av1gmri5k2djik6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBu6yz1wbBNIq3hWHLzs7_dTiUmNaj0iJA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "475292154308-da2tehtg8v0kq6fn4av1gmri5k2djik6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
